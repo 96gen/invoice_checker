@@ -2,6 +2,8 @@ from pyzbar.pyzbar import decode#偵測和解碼qrcode
 from PIL import Image#讀取圖片所需的函式庫
 from os import walk,path#將查詢資料夾內所有檔案所需要的函式庫
 from re import match#正規表示式的函式庫
+from requests import get#抓取網頁原始碼的函式庫
+from bs4 import BeautifulSoup#分析網頁的函式庫
 for tops, dirs, files in walk('qrcode'):#查詢資料夾內所有檔案
     for f in files:#將檔案一個一個弄出來
         print(f)#顯示檔案名稱
@@ -13,6 +15,16 @@ for tops, dirs, files in walk('qrcode'):#查詢資料夾內所有檔案
                 print(invoice_num,invoice_month)
                 if(invoice_month % 2 == 0):#因為兩個月開一次獎，所以偶數月和奇數月的中獎號碼是一樣的
                     invoice_month -= 1
+                html_source_code = get("https://www.etax.nat.gov.tw/etw-main/web/ETW183W2_"+ str(invoice_month) +"/")#根據發票月份抓取中獎號碼的網頁原始碼
+                html_numbers = BeautifulSoup(html_source_code.text,"html.parser").select(".number")#分析網頁原始碼獲得中獎號碼
+                txt = ""#存放中獎號碼
+                for number in html_numbers:#去除不需要的部分，取出中獎號碼
+                   txt += number.text
+                txt = txt.replace("ã\x80\x81"," ")#去除頓號換成空格
+                txt = txt.replace("b","").replace("'","").replace("   ","\n").replace("  ","\n").replace(" ","\n")#去除轉換產生的b和'，並且把空格換成\n
+                with open(str(invoice_month) + ".txt", "w") as f:#將中獎號碼寫入檔案
+                    f.write(txt)
+                                        
                 with open(str(invoice_month) + ".txt", "r") as f:#讀取存放中獎號碼的檔案
                     txt_data = f.read()#將檔案資料放到記憶體中
                     start = 0#中獎號碼的開頭
