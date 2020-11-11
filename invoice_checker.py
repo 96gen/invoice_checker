@@ -17,6 +17,9 @@ for tops, dirs, files in walk('qrcode'):#查詢資料夾內所有檔案
                     invoice_month -= 1
                 html_source_code = get("https://www.etax.nat.gov.tw/etw-main/web/ETW183W2_"+ str(invoice_month) +"/")#根據發票月份抓取中獎號碼的網頁原始碼
                 html_numbers = BeautifulSoup(html_source_code.text,"html.parser").select(".number")#分析網頁原始碼獲得中獎號碼
+                if(not html_numbers):
+                    print("尚未開獎")
+                    continue
                 txt = ""#存放中獎號碼
                 for number in html_numbers:#去除不需要的部分，取出中獎號碼
                    txt += number.text
